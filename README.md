@@ -18,7 +18,7 @@ No demo account is seeded, and the current login screen has no sign-up flow. Cre
 
 The root [`render.yaml`](./render.yaml) describes a Render web service. Create a hosted PostgreSQL database, apply `database/schema.sql`, then set these service environment variables:
 
-If you prefer to host the API on Vercel instead of Render, the repository includes a TypeScript serverless entrypoint at [`api/index.ts`](./api/index.ts) and a root [`vercel.json`](./vercel.json). The entrypoint imports the Express app directly, so deployment does not depend on the locally generated `dist/` directory. Configure `DATABASE_URL`, `JWT_SECRET`, and `CORS_ORIGIN` in the Vercel project settings.
+If you prefer to host the API on Vercel instead of Render, set the Vercel project's **Root Directory** to the repository root. The repository includes a TypeScript serverless entrypoint at [`api/index.ts`](./api/index.ts) and a root [`vercel.json`](./vercel.json), which rewrites requests to the Express handler. The entrypoint imports the Express app directly, so deployment does not depend on the locally generated `dist/` directory. Configure `DATABASE_URL`, `JWT_SECRET`, and `CORS_ORIGIN` in the Vercel project settings.
 
 - `DATABASE_URL`: the database connection URL.
 - `JWT_SECRET`: a private random secret of at least 32 characters (Render can generate it).
