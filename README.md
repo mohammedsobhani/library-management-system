@@ -24,7 +24,7 @@ If you prefer to host the API on Vercel instead of Render, the repository includ
 - `JWT_SECRET`: a private random secret of at least 32 characters (Render can generate it).
 - `CORS_ORIGIN`: the exact Vercel frontend origin, such as `https://your-project.vercel.app`.
 
-Render builds with `npm ci --include=dev && npm run build` and starts with `npm start`. The API health endpoint is `/health`.
+Render builds with `npm ci --include=dev && npm run build` and starts with `npm start`. The API root (`/`) returns service status, and the health endpoint is `/health`.
 If the Vercel URL is not known when the API is first deployed, set `CORS_ORIGIN` to the final URL and redeploy the API after the first Vercel deployment.
 
 ## Deploy the Flutter web client to Vercel
