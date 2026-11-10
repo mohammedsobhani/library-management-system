@@ -4,13 +4,6 @@ import { env } from '../config/env';
 import { AppError } from '../errors/app-error';
 import { UserRole } from '../constants/roles.enum';
 
-// Define JwtPayload interface directly
-export interface JwtPayload {
-  userId: string;
-  email: string;
-  role: UserRole;
-}
-
 export const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
 
@@ -18,11 +11,27 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
     return next(new AppError('Authentication token required', 401));
   }
 
-  const token = authHeader.split(' ')[1];
+  const token = authHeader.slice('Bearer '.length).trim();
+  if (!token) {
+    return next(new AppError('Authentication token required', 401));
+  }
 
   try {
-    const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
-    req.user = decoded;
+    const decoded = jwt.verify(token, env.JWT_SECRET);
+    if (
+      typeof decoded === 'string' ||
+      typeof decoded.userId !== 'string' ||
+      typeof decoded.email !== 'string'
+    ) {
+      return next(new AppError('Invalid or expired authentication token', 401));
+    }
+
+    const role = Object.values(UserRole).find((candidate) => candidate === decoded.role);
+    if (!role) {
+      return next(new AppError('Invalid or expired authentication token', 401));
+    }
+
+    req.user = { userId: decoded.userId, email: decoded.email, role };
     next();
   } catch (err) {
     return next(new AppError('Invalid or expired authentication token', 401));

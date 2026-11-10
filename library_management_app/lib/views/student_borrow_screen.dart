@@ -832,7 +832,7 @@ class _StudentBorrowScreenState extends State<StudentBorrowScreen> {
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      value: _selectedRole,
+                      initialValue: _selectedRole,
                       decoration: const InputDecoration(
                         labelText: 'Borrower Role',
                         border: OutlineInputBorder(),
@@ -879,7 +879,7 @@ class _StudentBorrowScreenState extends State<StudentBorrowScreen> {
                           children: [
                             Switch(
                               value: _isManualIsbn,
-                              activeColor: mutedForestGreen,
+                              activeThumbColor: mutedForestGreen,
                               onChanged: (val) {
                                 setState(() => _isManualIsbn = val);
                               },

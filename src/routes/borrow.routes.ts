@@ -1,6 +1,4 @@
 import { Router, Request, Response } from 'express';
-import pool from '../config/database'; // Adjust path if your DB config is located elsewhere
-// 🛑 THIS IS CORRECT: Importing the default export as 'pool'
 import pool from '../config/database';
 
 const router = Router();

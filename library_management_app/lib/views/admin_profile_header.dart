@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -15,7 +14,7 @@ class AdminProfileHeader extends StatefulWidget {
 
 class _AdminProfileHeaderState extends State<AdminProfileHeader> {
   Uint8List? _imageBytes;
-  bool _isUploading = false;
+  final bool _isUploading = false;
 
   // 📸 UNIVERSAL PHOTO PICKER (Web & Desktop Compatible)
   void _pickAdminProfileImage() {

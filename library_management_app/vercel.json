@@ -1,0 +1,5 @@
+{
+  "installCommand": "echo 'Flutter build installs its own dependencies'",
+  "buildCommand": "bash scripts/vercel-build.sh",
+  "outputDirectory": "build/web"
+}

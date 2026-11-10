@@ -2,15 +2,15 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import pool from '../config/database';
-import { login } from '../controllers/borrow.controller';
+import { env } from '../config/env';
 const router = Router();
 
 // ============================================================================
-// 1. REGISTER USER / ADMIN
+// 1. REGISTER STUDENT
 // ============================================================================
 router.post('/register', async (req: Request, res: Response): Promise<void> => {
     try {
-        const { name, email, password, role } = req.body;
+        const { name, email, password } = req.body;
 
         if (!name || !email || !password) {
             res.status(400).json({
@@ -19,8 +19,6 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
             });
             return;
         }
-        // 🛑 IMPORTANT: Route should be '/login', because '/auth' is already prefixed in server.ts!
-        router.post('/login', login);
         // Check if user already exists
         const existingUser = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
         if (existingUser.rows.length > 0) {
@@ -45,7 +43,7 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
             name,
             email,
             hashedPassword,
-            role || 'STUDENT',
+            'STUDENT',
         ]);
 
         res.status(201).json({
@@ -63,7 +61,7 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
 });
 
 // ============================================================================
-// 2. USER LOGIN (Bcrypt + Plain Text Fallback + Dual-Format Payload)
+// 2. USER LOGIN (Bcrypt verification + dual-format payload)
 // ============================================================================
 router.post('/login', async (req: Request, res: Response): Promise<void> => {
     try {
@@ -90,20 +88,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
 
         const user = result.rows[0];
 
-        // Password Verification Strategy:
-        // 1. Try standard bcrypt comparison
-        // 2. Fall back to direct plain-text match if DB password was inserted unhashed
-        let isMatch = false;
-
-        try {
-            isMatch = await bcrypt.compare(password, user.password);
-        } catch (e) {
-            isMatch = false;
-        }
-
-        if (!isMatch && password === user.password) {
-            isMatch = true;
-        }
+        const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
             res.status(401).json({
@@ -114,14 +99,14 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
         }
 
         // Sign JWT token using secret from env
-        const secretKey = process.env.JWT_SECRET || 'super_secret_library_jwt_key_2026_secure';
         const token = jwt.sign(
             {
                 id: user.id,
+                userId: String(user.id),
                 email: user.email,
                 role: user.role,
             },
-            secretKey,
+            env.JWT_SECRET,
             { expiresIn: '7d' }
         );
 
@@ -164,10 +149,21 @@ router.get('/me', async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const token = authHeader.split(' ')[1];
-        const secretKey = process.env.JWT_SECRET || 'super_secret_library_jwt_key_2026_secure';
+        const token = authHeader.slice('Bearer '.length).trim();
+        if (!token) {
+            res.status(401).json({ success: false, message: 'Unauthorized access.' });
+            return;
+        }
 
-        const decoded = jwt.verify(token, secretKey) as { id: number; email: string };
+        const decoded = jwt.verify(token, env.JWT_SECRET);
+        if (
+            typeof decoded === 'string' ||
+            (typeof decoded.id !== 'string' && typeof decoded.id !== 'number')
+        ) {
+            res.status(401).json({ success: false, message: 'Invalid or expired token.' });
+            return;
+        }
+
         const userResult = await pool.query('SELECT id, name, email, role FROM users WHERE id = $1', [
             decoded.id,
         ]);
